@@ -81,7 +81,11 @@ makedocs(
 	sitename = "PluginSystem.jl",
 	modules = [PluginSystem],
 	doctest = true,
-	remotes = nothing,
-	format = Documenter.HTML(prettyurls = false),
+	repo = Documenter.Remotes.GitHub("czy-ustc", "PluginSystem.jl"),
+	format = Documenter.HTML(
+		prettyurls = false,
+		repolink = "https://github.com/czy-ustc/PluginSystem.jl",
+		edit_link = "main",
+	),
 	pages = DOC_PAGES,
 )

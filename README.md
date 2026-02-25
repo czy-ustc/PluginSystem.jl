@@ -1,7 +1,7 @@
 # PluginSystem.jl
 
-[![CI](https://github.com/czy-ustc/PluginSystem.jl/actions/workflows/ci.yml/badge.svg)](https://github.com/czy-ustc/PluginSystem.jl/actions/workflows/ci.yml)
-[![Docs](https://github.com/czy-ustc/PluginSystem.jl/actions/workflows/docs.yml/badge.svg)](https://github.com/czy-ustc/PluginSystem.jl/actions/workflows/docs.yml)
+[![CI](https://github.com/czy-ustc/PluginSystem.jl/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/czy-ustc/PluginSystem.jl/actions/workflows/ci.yml)
+[![Docs](https://github.com/czy-ustc/PluginSystem.jl/actions/workflows/docs.yml/badge.svg?branch=main)](https://github.com/czy-ustc/PluginSystem.jl/actions/workflows/docs.yml)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Julia](https://img.shields.io/badge/julia-1.12%2B-9558B2.svg)](https://julialang.org/)
 
