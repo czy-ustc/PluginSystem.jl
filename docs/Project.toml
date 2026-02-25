@@ -1,0 +1,3 @@
+[deps]
+Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
+PluginSystem = "ff50533a-81a8-4b27-b8f2-3f95e4e4475a"

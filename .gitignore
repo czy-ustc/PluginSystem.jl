@@ -1,0 +1,29 @@
+# Julia generated files
+*.jl.cov
+*.jl.*.cov
+*.jl.mem
+
+# Build and dependencies
+deps/build.log
+deps/deps.jl
+deps/usr/
+deps/downloads/
+
+# Documentation build output
+docs/build/
+docs/site/
+
+# Test and runtime local artifacts
+.julia_plugins/
+coverage/
+
+# Editor and OS files
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# Temporary files
+*.tmp
+*.bak
+
