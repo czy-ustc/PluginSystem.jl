@@ -16,6 +16,10 @@ docs/site/
 # Test and runtime local artifacts
 .julia_plugins/
 coverage/
+Manifest.toml
+
+# AI assistant
+CLAUDE.md
 
 # Editor and OS files
 .DS_Store
