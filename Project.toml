@@ -1,6 +1,6 @@
 name = "PluginSystem"
 uuid = "ff50533a-81a8-4b27-b8f2-3f95e4e4475a"
-version = "0.1.0"
+version = "0.1.1"
 authors = ["chenzhiyuan"]
 
 [workspace]
