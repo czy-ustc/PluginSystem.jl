@@ -168,7 +168,9 @@ function resolve(
 		compat = get!(new_config, "compat", Dict{String, String}())
 		new_config["compat"] = merge(_load_direct_deps(setdiff(deps, update_plugins), workspace), compat)
 		targeted_resolve(new_config; workspace = workspace)
-	catch
+	catch e
+		e isa InterruptException && rethrow()
+		@warn "Preserve-mode resolution failed, falling back to full resolve" exception = (e, catch_backtrace())
 		targeted_resolve(config; workspace = workspace)
 	end
 end
