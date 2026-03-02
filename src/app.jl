@@ -188,53 +188,24 @@ function _run_generate_plugin(args, io, _err)
 	0
 end
 
-function _run_registry_namespace(args, io, _err)
-	if isempty(args)
-		_print_command_help(io, "registry")
-		return 0
-	end
-	if args[1] in ("help", "-h", "--help")
-		if length(args) == 1
-			_print_command_help(io, "registry")
-		else
-			_print_command_help(io, "registry " * join(args[2:end], " "))
+function _run_namespace(namespace::String)
+	function (args, io, _err)
+		if isempty(args)
+			_print_command_help(io, namespace)
+			return 0
 		end
-		return 0
+		if args[1] in ("help", "-h", "--help")
+			topic = length(args) == 1 ? namespace : namespace * " " * join(args[2:end], " ")
+			_print_command_help(io, topic)
+			return 0
+		end
+		error("Unknown $namespace subcommand: $(join(args, " ")). Use `help $namespace`.")
 	end
-	error("Unknown registry subcommand: $(join(args, " ")). Use `help registry`.")
 end
 
-function _run_cache_namespace(args, io, _err)
-	if isempty(args)
-		_print_command_help(io, "cache")
-		return 0
-	end
-	if args[1] in ("help", "-h", "--help")
-		if length(args) == 1
-			_print_command_help(io, "cache")
-		else
-			_print_command_help(io, "cache " * join(args[2:end], " "))
-		end
-		return 0
-	end
-	error("Unknown cache subcommand: $(join(args, " ")). Use `help cache`.")
-end
-
-function _run_generate_namespace(args, io, _err)
-	if isempty(args)
-		_print_command_help(io, "generate")
-		return 0
-	end
-	if args[1] in ("help", "-h", "--help")
-		if length(args) == 1
-			_print_command_help(io, "generate")
-		else
-			_print_command_help(io, "generate " * join(args[2:end], " "))
-		end
-		return 0
-	end
-	error("Unknown generate subcommand: $(join(args, " ")). Use `help generate`.")
-end
+const _run_registry_namespace = _run_namespace("registry")
+const _run_cache_namespace = _run_namespace("cache")
+const _run_generate_namespace = _run_namespace("generate")
 
 const command_declarations = Dict{Symbol, Any}[
 	_decl(PSA[
