@@ -48,16 +48,25 @@ function _remove_unused_plugins(old_config::Dict{String, Any}, used_plugins, wor
 	plugins = get(config, "plugins", Dict{String, String}[])
 	new_plugins = Dict{String, String}[]
 	for info in plugins
-		if info["name"] in used_plugins
+		info isa Dict || continue
+		name = get(info, "name", nothing)
+		name isa String || continue
+		path = get(info, "path", nothing)
+		if name in used_plugins
 			push!(new_plugins, info)
 			for p in get(old_config, "plugins", Dict{String, String}[])
-				if p["name"] == info["name"] && p["path"] != info["path"]
-					rm(joinpath(plugin_dir, dirname(p["path"])); force = true, recursive = true)
+				p isa Dict || continue
+				old_name = get(p, "name", nothing)
+				old_path = get(p, "path", nothing)
+				if old_name == name && old_path isa String && path isa String && old_path != path
+					rm(joinpath(plugin_dir, dirname(old_path)); force = true, recursive = true)
 					break
 				end
 			end
 		else
-			rm(joinpath(plugin_dir, dirname(info["path"])); force = true, recursive = true)
+			if path isa String
+				rm(joinpath(plugin_dir, dirname(path)); force = true, recursive = true)
+			end
 		end
 	end
 	write_toml(manifest_path, Dict{String, Any}("plugins" => new_plugins))
@@ -251,7 +260,7 @@ function _pin_or_free(
 		UI.step(io, "marking pinned plugins")
 		isfile(manifest_path) || error("Plugins.toml not found in current directory.")
 		for name in names
-			index = findfirst(p -> p["name"] == name, plugins)
+			index = findfirst(p -> get(p, "name", nothing) == name, plugins)
 			index === nothing && error("Plugin $name not found in current configuration.")
 			plugins[index]["pinned"] = true
 		end
@@ -268,7 +277,7 @@ function _pin_or_free(
 
 	for name in names
 		seen = false
-		index = findfirst(p -> p["name"] == name, plugins)
+		index = findfirst(p -> get(p, "name", nothing) == name, plugins)
 		if index !== nothing
 			seen = true
 			if haskey(plugins[index], "pinned")
@@ -640,7 +649,7 @@ function _status_data(workspace::Workspace)
 			end
 		end
 
-		index = findfirst(p -> p["name"] == plugin.name, installed_plugins)
+		index = findfirst(p -> get(p, "name", nothing) == plugin.name, installed_plugins)
 		installed = index !== nothing
 		pinned = installed ? get(installed_plugins[index], "pinned", false) : false
 
