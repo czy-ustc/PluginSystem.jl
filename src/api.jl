@@ -6,7 +6,7 @@ using ..PluginSystem: GLOBAL_DEV_PLUGINS_DIR
 using ..Registry: RegistryData
 using ..Resolve: resolve
 using ..UI
-using ..Utils: Workspace, manifest_plugins_toml, parse_plugin_definition, plugin_store_dir,
+using ..Utils: Workspace, deps_list, manifest_plugins_toml, parse_plugin_definition, plugin_store_dir,
 	project_plugins_toml,
 	read_toml_if_exists, read_toml_required, workspace, write_toml
 
@@ -26,12 +26,6 @@ end
 
 function _load_manifest_config(workspace::Workspace)
 	read_toml_if_exists(manifest_plugins_toml(workspace))
-end
-
-function _deps_list(config::Dict{String, Any})
-	deps = get!(config, "deps", String[])
-	deps isa Vector || error("`deps` must be a string list in Plugins.toml.")
-	String[string(dep) for dep in deps]
 end
 
 function _set_deps!(config::Dict{String, Any}, deps::Vector{String})
@@ -136,7 +130,7 @@ function _add_or_update(
 	project_path = project_plugins_toml(workspace)
 	config = read_toml_if_exists(project_path)
 
-	deps = _deps_list(config)
+	deps = deps_list(config)
 	compat = get!(config, "compat", Dict{String, String}())
 	update_plugins = String[]
 	for plugin in plugins
@@ -183,7 +177,7 @@ function update(args::String...; io::Union{Nothing, IO} = nothing, base_dir::Uni
 	workspace = _workspace(base_dir)
 	if isempty(args)
 		config = read_toml_if_exists(project_plugins_toml(workspace))
-		return _add_or_update(_deps_list(config)...; update = true, io = io, base_dir = workspace.root)
+		return _add_or_update(deps_list(config)...; update = true, io = io, base_dir = workspace.root)
 	end
 	_add_or_update(args...; update = true, io = io, base_dir = workspace.root)
 end
@@ -202,7 +196,7 @@ function remove(names::String...; io::Union{Nothing, IO} = nothing, base_dir::Un
 	old_manifest = _load_manifest_config(workspace)
 
 	config = read_toml_required(project_path)
-	deps = _deps_list(config)
+	deps = deps_list(config)
 	compat = get(config, "compat", Dict{String, Any}())
 	for name in names
 		name in deps || error("The plugin $name could not be resolved.")
@@ -622,10 +616,24 @@ function _status_data(workspace::Workspace)
 	installed_plugins = get(manifest, "plugins", Dict{String, String}[])
 	registry = RegistryData(workspace)
 	packages = registry.packages
-	deps = Set(_deps_list(config))
+	deps = Set(deps_list(config))
 
 	plugins = resolve(config; workspace = workspace)
-	unpreserved_plugins = resolve(config; preserve = false, workspace = workspace)
+
+	# Lazy: only run the second (unpreserved) resolve if any plugin is behind max version.
+	needs_upgrade_check = any(plugins) do plugin
+		plugin.name in deps || return false
+		meta = get(packages, plugin.name, nothing)
+		meta === nothing && return false
+		max_version = maximum(VersionNumber.(keys(meta["versions"])))
+		plugin.version < max_version
+	end
+	unpreserved_map = if needs_upgrade_check
+		unpreserved_plugins = resolve(config; preserve = false, workspace = workspace)
+		Dict(p.name => p for p in unpreserved_plugins)
+	else
+		Dict{String, eltype(plugins)}()
+	end
 
 	data = PackageStatusData[]
 	for plugin in plugins
@@ -637,9 +645,8 @@ function _status_data(workspace::Workspace)
 		if meta !== nothing
 			max_version = maximum(VersionNumber.(keys(meta["versions"])))
 			if plugin.version < max_version
-				idx = findfirst(p -> p.name == plugin.name, unpreserved_plugins)
-				if idx !== nothing
-					unpreserved_plugin = unpreserved_plugins[idx]
+				unpreserved_plugin = get(unpreserved_map, plugin.name, nothing)
+				if unpreserved_plugin !== nothing
 					if unpreserved_plugin.version == plugin.version
 						heldback = true
 					else

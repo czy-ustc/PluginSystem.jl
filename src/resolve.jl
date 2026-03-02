@@ -2,7 +2,7 @@ module Resolve
 
 using ..PluginSystem: AbstractPluginInfo, LocalPluginInfo, RemotePluginInfo
 using ..Registry: RegistryData
-using ..Utils: Workspace, manifest_plugins_toml, read_toml_if_exists, workspace
+using ..Utils: Workspace, deps_list, manifest_plugins_toml, read_toml_if_exists, workspace
 using Pkg.Resolve: Fixed, Graph, resolve as pkg_resolve, simplify_graph!
 using Pkg.Types: VersionSpec
 using UUIDs: UUID
@@ -115,12 +115,6 @@ function topological_sort(plugins::Dict{String, AbstractPluginInfo})
 	[plugins[name] for name in result]
 end
 
-function _deps_list(config::Dict{String, Any})
-	deps = get(config, "deps", String[])
-	deps isa Vector || error("`Plugins.toml` field `deps` must be a list of plugin names.")
-	String[string(dep) for dep in deps]
-end
-
 function _load_direct_deps(deps::Vector{String}, workspace::Workspace)
 	path = manifest_plugins_toml(workspace)
 	Dict(
@@ -138,7 +132,7 @@ end
 
 function targeted_resolve(config::Dict{String, Any}; workspace::Workspace = workspace())
 	registry = RegistryData(workspace)
-	deps = _deps_list(config)
+	deps = deps_list(config)
 	compat = merge(get(config, "compat", Dict{String, String}()), _get_pin_plugins(workspace))
 
 	reqs = Dict{String, VersionSpec}()
@@ -164,7 +158,7 @@ function resolve(
 
 	try
 		new_config = deepcopy(config)
-		deps = _deps_list(new_config)
+		deps = deps_list(new_config)
 		compat = get!(new_config, "compat", Dict{String, String}())
 		new_config["compat"] = merge(_load_direct_deps(setdiff(deps, update_plugins), workspace), compat)
 		targeted_resolve(new_config; workspace = workspace)

@@ -7,7 +7,8 @@ using TOML: parsefile, print as toml_print
 export manifest_plugins_toml, project_plugins_toml, read_toml_if_exists,
 	read_toml_required, with_repo, write_toml, is_hex_object_id, plugins_dir,
 	plugin_store_dir, Workspace, workspace, find_workspace_root, PluginDefinition,
-	parse_plugin_definition, collect_plugin_definitions, plugin_metadata_entry
+	parse_plugin_definition, collect_plugin_definitions, plugin_metadata_entry,
+	deps_list
 
 # Path to the project-level plugin declaration file.
 project_plugins_toml(base_dir::String = pwd()) = joinpath(base_dir, "Plugins.toml")
@@ -171,6 +172,17 @@ function plugin_metadata_entry(def::PluginDefinition; namespace::String)
 		"deps" => dep_map,
 		"compat" => compat,
 	)
+end
+
+"""
+    deps_list(config) -> Vector{String}
+
+Read `deps` field from a parsed `Plugins.toml` config dict.
+"""
+function deps_list(config::Dict{String, Any})
+	deps = get(config, "deps", String[])
+	deps isa Vector || error("`deps` must be a string list in Plugins.toml.")
+	String[string(dep) for dep in deps]
 end
 
 end#= module Utils =#
